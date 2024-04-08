@@ -14,12 +14,11 @@ An enterprise-grade WordPress image built for scale. It uses the new FrankenPHP 
 - [WordPress](https://hub.docker.com/_/wordpress "WordPress Docker Image")
 - [FrankenPHP](https://hub.docker.com/r/dunglas/frankenphp "FrankenPHP Docker Image")
 - [Caddy](https://caddyserver.com/ "Caddy Server")
--
 
 ### Caching
 
 - opcache
-- cache-handler CaddyModule
+- Internal server sidekick
 
 ### Environment Variables
 
@@ -32,8 +31,7 @@ An enterprise-grade WordPress image built for scale. It uses the new FrankenPHP 
 - DB_TABLE_PREFIX
 - WP_DEBUG
 - FORCE_HTTPS
-- CACHE_AGE
-- STATIC_CACHE_AGE
+- TTL
 - WORDPRESS_CONFIG_EXTRA // use this for adding CACHE, WP_HOME, WP_SITEURL, etc
 
 ## Questions
@@ -54,7 +52,7 @@ It is good practice to avoid using root users in your Docker images for security
 
 ### What are the Changes from Base FrankenPHP?
 
-This custom FrankenPHP build includes the cache-handler Caddy module. It leverages the popular Souin HTTP cache service. It provides lightning fast cache that can be distributed among many containers. The default cache uses the local wp-content/cache directory but can use many cache services.
+This custom Caddy build also includes an internal project named sidekick. It provides lightning fast cache that can be distributed among many containers. The default cache uses the local wp-content/cache directory but can use many cache services.
 
 ### How to use when behind load balancer or proxy?
 

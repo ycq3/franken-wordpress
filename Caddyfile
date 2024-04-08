@@ -9,26 +9,10 @@
 	}
 
 	# https://caddyserver.com/docs/caddyfile/directives#sorting-algorithm
-	order mercure after encode
-	order vulcain after reverse_proxy
 	order php_server before file_server
 	order php before file_server
-	order cache before rewrite
-	order request_header before cache
-
-	cache {
-		mode bypass
-		allowed_http_verbs GET POST PURGE
-		api {
-			basepath /{$BASE_SERVER_API_PATH:__snapi}
-			souin {
-				basepath /{$CACHE_API_DIR:__sn}
-			}
-		}
-		nuts {
-			path /var/www/html/wp-content/cache
-		}
-	}
+	order wp_cache before rewrite
+	order request_header before wp_cache
 }
 
 {$CADDY_EXTRA_CONFIG}
@@ -44,34 +28,17 @@
 
 	root * /var/www/html/
 	encode br zstd gzip
-
-	# Uncomment the following lines to enable Mercure and Vulcain modules
-	#mercure {
-	#       # Transport to use (default to Bolt)
-	#       transport_url {$MERCURE_TRANSPORT_URL:bolt:///data/mercure.db}
-	#       # Publisher JWT key
-	#       publisher_jwt {env.MERCURE_PUBLISHER_JWT_KEY} {env.MERCURE_PUBLISHER_JWT_ALG}
-	#       # Subscriber JWT key
-	#       subscriber_jwt {env.MERCURE_SUBSCRIBER_JWT_KEY} {env.MERCURE_SUBSCRIBER_JWT_ALG}
-	#       # Allow anonymous subscribers (double-check that it's what you want)
-	#       anonymous
-	#       # Enable the subscription API (double-check that it's what you want)
-	#       subscriptions
-	#       # Extra directives
-	#       {$MERCURE_EXTRA_DIRECTIVES}
-	#}
-	#vulcain
+	
+	wp_cache {
+		loc {$CACHE_LOC:/var/www/html/wp-content/cache}
+		ttl {$TTL:6000}
+		purge_path {$PURGE_PATH:/__cache/purge}
+		purge_key {$PURGE_KEY}
+		bypass_home {$BYPASS_HOME:false}
+		bypass_path_prefixes {$BYPASS_PATH_PREFIXES:/wp-admin,/wp-json}
+	}
 
 	{$CADDY_SERVER_EXTRA_DIRECTIVES}
 
-	cache {
-		ttl {$CACHE_AGE:6000}s
-		key {
-			disable_host
-		}
-		regex {
-			exclude /wp-*|/*\?.*|/favicon*
-		}
-	}
 	php_server
 }

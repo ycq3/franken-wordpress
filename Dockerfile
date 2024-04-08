@@ -2,8 +2,29 @@ ARG WORDPRESS_VERSION=latest
 ARG PHP_VERSION=8.3
 ARG USER=www-data
 
+
+FROM dunglas/frankenphp:latest-builder as builder
+
+# Copy xcaddy in the builder image
+COPY --from=caddy:builder /usr/bin/xcaddy /usr/bin/xcaddy
+
+
+# CGO must be enabled to build FrankenPHP
+ENV CGO_ENABLED=1 XCADDY_SETCAP=1 XCADDY_GO_BUILD_FLAGS='-ldflags="-w -s" -trimpath'
+
+COPY ./sidekick/middleware/cache ./cache
+
+RUN xcaddy build \
+    --output /usr/local/bin/frankenphp \
+    --with github.com/dunglas/frankenphp=./ \
+    --with github.com/dunglas/frankenphp/caddy=./caddy/ \
+    --with github.com/dunglas/caddy-cbrotli \   
+    # Add extra Caddy modules here
+    --with github.com/stephenmiracle/frankenwp/sidekick/middleware/cache=./cache
+
+
 FROM wordpress:$WORDPRESS_VERSION as wp
-FROM --platform=linux/arm64 dunglas/frankenphp AS base
+FROM dunglas/frankenphp AS base
 
 LABEL org.opencontainers.image.title=FrankenWP
 LABEL org.opencontainers.image.description="Optimized WordPress containers to run everywhere. Built with FrankenPHP & Caddy."
@@ -14,11 +35,9 @@ LABEL org.opencontainers.image.vendor="Stephen Miracle"
 
 
 # Replace the official binary by the one contained your custom modules
-COPY --from=stephenmiracle/frankenwp:builder /usr/local/bin/frankenphp /usr/local/bin/frankenphp
+COPY --from=builder /usr/local/bin/frankenphp /usr/local/bin/frankenphp
 ENV WP_DEBUG=${DEBUG:+1}
 ENV FORCE_HTTPS=0
-ENV CACHE_AGE=6000
-ENV STATIC_CACHE_AGE=6000
 ENV PHP_INI_SCAN_DIR=$PHP_INI_DIR/conf.d
 
 
@@ -100,8 +119,10 @@ VOLUME /var/www/html/wp-content
 
 
 COPY Caddyfile /etc/caddy/Caddyfile
-RUN mkdir /var/www/html/wp-content
+COPY wp-content /var/www/html/wp-content
 RUN mkdir /var/www/html/wp-content/cache
+
+
 
 RUN sed -i \
     -e 's/\[ "$1" = '\''php-fpm'\'' \]/\[\[ "$1" == frankenphp* \]\]/g' \
@@ -111,13 +132,12 @@ RUN sed -i \
 
 
 # Add $_SERVER['ssl'] = true; when env USE_SSL = true is set to the wp-config.php file here: /usr/local/bin/wp-config-docker.php
-RUN sed -i 's/<?php/<?php if (!!getenv("FORCE_HTTPS")) { \$_SERVER["HTTPS"] = "on"; define( "FS_METHOD", "direct" ); set_time_limit(300); }/g' /usr/src/wordpress/wp-config-docker.php
+RUN sed -i 's/<?php/<?php if (!!getenv("FORCE_HTTPS")) { \$_SERVER["HTTPS"] = "on"; } define( "FS_METHOD", "direct" ); set_time_limit(300); /g' /usr/src/wordpress/wp-config-docker.php
 
 # Adding WordPress CLI
 RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && \
     chmod +x wp-cli.phar && \
-    mv wp-cli.phar /usr/local/bin/wp && \
-    wp --allow-root --version
+    mv wp-cli.phar /usr/local/bin/wp
 
 RUN useradd -D ${USER} && \
     # Caddy requires an additional capability to bind to port 80 and 443
