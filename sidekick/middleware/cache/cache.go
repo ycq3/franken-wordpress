@@ -22,6 +22,7 @@ type Cache struct {
 	BypassPathPrefixes []string
 	BypassHome bool
 	TTL int
+	Store *Store
 }
 
 func init() {
@@ -118,6 +119,8 @@ func (c *Cache) Provision(ctx caddy.Context) error {
 		c.PurgeKey = os.Getenv("PURGE_KEY")
 	}
 
+	c.Store = NewStore(c.Loc, c.TTL, c.logger)
+
 	return nil
 }
 
@@ -159,7 +162,7 @@ func (c Cache) ServeHTTP(w http.ResponseWriter, r *http.Request,
 		return next.ServeHTTP(w, r)
 	}
 
-	db := NewStore(c.Loc, c.TTL, c.logger)
+	db := c.Store
 	nw := NewCustomWriter(w, r, db, c.logger, r.URL.Path)
 
 	if strings.Contains(r.URL.Path, c.PurgePath) && r.Method == "POST" {
@@ -181,6 +184,12 @@ func (c Cache) ServeHTTP(w http.ResponseWriter, r *http.Request,
 		w.Write([]byte("OK"))
 
 		return nil
+	}
+	
+	// bypass if is logged in. We don't want to cache admin bars
+	cookies := r.Header.Get("Cookie")
+	if strings.Contains(cookies, "wordpress_logged_in") {
+		return next.ServeHTTP(w, r)
 	}
 
 	requestHeader := r.Header
@@ -214,6 +223,7 @@ func (c Cache) ServeHTTP(w http.ResponseWriter, r *http.Request,
 
 		return nil
 	}
+
 
 	return next.ServeHTTP(nw, r)
 }

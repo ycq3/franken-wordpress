@@ -119,7 +119,7 @@ VOLUME /var/www/html/wp-content
 
 
 COPY Caddyfile /etc/caddy/Caddyfile
-COPY wp-content /var/www/html/wp-content
+COPY wp-content/mu-plugins /var/www/html/wp-content/mu-plugins
 RUN mkdir /var/www/html/wp-content/cache
 
 
