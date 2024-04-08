@@ -5,6 +5,7 @@ import (
 	"strings"
 	"regexp"
 	"strconv"
+	"encoding/json"
 
 	"github.com/caddyserver/caddy/v2"
 	"github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
@@ -164,6 +165,20 @@ func (c Cache) ServeHTTP(w http.ResponseWriter, r *http.Request,
 
 	db := c.Store
 	nw := NewCustomWriter(w, r, db, c.logger, r.URL.Path)
+
+	if strings.Contains(r.URL.Path, c.PurgePath) && r.Method == "GET" {
+		key := r.Header.Get("X-WPSidekick-Purge-Key")
+
+		if key == c.PurgeKey {
+			cacheList := db.List()
+
+			json.NewEncoder(w).Encode(cacheList)
+
+			return nil
+		} else {
+			c.logger.Warn("wp cache - purge - invalid key", zap.String("path", r.URL.Path))
+		}
+	}
 
 	if strings.Contains(r.URL.Path, c.PurgePath) && r.Method == "POST" {
 		key := r.Header.Get("X-WPSidekick-Purge-Key")

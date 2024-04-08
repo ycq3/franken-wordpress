@@ -61,12 +61,12 @@ func (d *Store) Get(key string) ([]byte, error) {
 	key = strings.ReplaceAll(key, "/", "+")
 
 	if d.memCache[key] != nil {
-		d.logger.Debug("Pulled key from memory")
+		d.logger.Debug("Pulled key from memory", zap.String("key", key))
 		return d.memCache[key].value, nil
 	}
 
 	if _, err := os.Stat(d.loc + "/" + CACHE_DIR+ "/." +key); err == nil {
-		d.logger.Debug("Pulled key from file")
+		d.logger.Debug("Pulled key from file", zap.String("key", key))
 		return os.ReadFile(d.loc+"/"+CACHE_DIR+"/."+key)
 	}
 
@@ -109,4 +109,28 @@ func (d *Store) Purge(key string) {
 func (d *Store) Flush() error {
 	d.memCache = make(map[string]*MemCacheItem)
 	return os.RemoveAll(d.loc + "/" + CACHE_DIR)
+}
+
+func (d *Store) List() map[string][]string {
+	list := make(map[string][]string)
+	list["mem"] = make([]string, len(d.memCache))
+	memIdx := 0
+
+	for key, _ := range d.memCache {
+		list["mem"][memIdx] = key
+		memIdx++
+	}
+
+	files, err := os.ReadDir(d.loc+"/"+CACHE_DIR)
+	list["disk"] = make([]string, 0)
+
+	if err == nil {
+		for _, file := range files {
+			if !file.IsDir() {
+				list["disk"] = append(list["disk"], file.Name())
+			}
+		}
+	}
+
+	return list
 }
