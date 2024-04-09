@@ -82,7 +82,14 @@ func (d *Store) Set(key string, value []byte) error {
 		timestamp: time.Now().Unix(),
 	}
 
-    return os.WriteFile(d.loc+"/"+CACHE_DIR+"/."+key, value, 0644)
+    err := os.WriteFile(d.loc+"/"+CACHE_DIR+"/."+key, value, 0644)
+
+	
+	if err != nil {
+		d.logger.Error("Error writing to cache", zap.Error(err))
+	}
+
+	return err
 }
 
 func (d *Store) Purge(key string) {
@@ -108,7 +115,15 @@ func (d *Store) Purge(key string) {
 
 func (d *Store) Flush() error {
 	d.memCache = make(map[string]*MemCacheItem)
-	return os.RemoveAll(d.loc + "/" + CACHE_DIR)
+	err := os.RemoveAll(d.loc + "/" + CACHE_DIR)
+
+	if err == nil {
+		os.MkdirAll(d.loc+"/"+CACHE_DIR, os.ModePerm)
+	} else {
+		d.logger.Error("Error flushing cache", zap.Error(err))
+	}
+
+	return err
 }
 
 func (d *Store) List() map[string][]string {

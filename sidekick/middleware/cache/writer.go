@@ -29,13 +29,11 @@ func (r *CustomWriter) Write(b []byte) (int, error) {
 	// content encoding
 	ct := r.Header().Get("Content-Encoding")
 	r.Header().Set("X-WPEverywhere-Cache", "MISS")
+
 	cacheKey := ct + "::" + r.path
 	r.Logger.Debug("Cache Key", zap.String("Key", cacheKey))
-	err := r.Store.Set(cacheKey, []byte(string(b)))
 
-	if err != nil {
-		r.Logger.Error("Error writing to cache", zap.Error(err))
-	}
+	go r.Store.Set(cacheKey, b)
 
 	return r.ResponseWriter.Write(b)
 }

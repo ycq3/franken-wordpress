@@ -140,6 +140,8 @@ func (c Cache) ServeHTTP(w http.ResponseWriter, r *http.Request,
 	bypass := false
 	encoding := ""
 
+	c.logger.Debug("HTTP Version", zap.String("Version", r.Proto))
+
 	for _, prefix := range c.BypassPathPrefixes {
 		if strings.HasPrefix(r.URL.Path, prefix) && prefix != "" {
 			c.logger.Debug("wp cache - bypass prefix", zap.String("prefix", prefix))
@@ -156,6 +158,10 @@ func (c Cache) ServeHTTP(w http.ResponseWriter, r *http.Request,
 	}
 
 	if c.BypassHome && r.URL.Path == "/" {
+		bypass = true
+	}
+
+	if r.Proto == "HTTP/1.0" {
 		bypass = true
 	}
 
@@ -188,9 +194,9 @@ func (c Cache) ServeHTTP(w http.ResponseWriter, r *http.Request,
 			c.logger.Debug("wp cache - purge", zap.String("path", pathToPurge))
 
 			if len(pathToPurge) < 2 {
-				db.Flush()
+				go db.Flush()
 			} else {
-				db.Purge(pathToPurge)
+				go db.Purge(pathToPurge)
 			}
 		} else {
 			c.logger.Warn("wp cache - purge - invalid key", zap.String("path", r.URL.Path))
@@ -231,7 +237,7 @@ func (c Cache) ServeHTTP(w http.ResponseWriter, r *http.Request,
 		w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 		w.Header().Set("Server", "Caddy")
 		w.Header().Set("X-Powered-By", "PHP/8.3.4")
-		w.Header().Set("Transfer-Encoding", "chunked")
+	//	w.Header().Set("Transfer-Encoding", "chunked")
 		w.Header().Set("Vary", "Accept-Encoding")
 		w.Header().Set("Content-Encoding", encoding)
 		w.Write(cacheItem)
