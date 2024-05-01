@@ -6,6 +6,7 @@ An enterprise-grade WordPress image built for scale. It uses the new FrankenPHP 
 
 - [Docker Hub Source](https://hub.docker.com/repository/docker/stephenmiracle/frankenwp/general "Docker Hub")
 - [Docker Compose](https://github.com/StephenMiracle/wordpress-docker-frankenphp, "Docker Compose Project")
+- [Slack](https://join.slack.com/t/thatmiracle/shared_invite/zt-2hxi2pz12-0Pnf8zwCB3zWZ9SJmC0Qtg "Slack")
 
 ## Whats Included
 
@@ -62,3 +63,9 @@ Working in cloud environments like AWS can be tricky because your traffic is goi
 
 What about SSL cert? Use `SERVER_NAME=mydomain.com, :80`
 Caddy, the underlying application server is flexible enough for multiple entries. Separate multiple values with a comma. It will still request certificate.
+
+
+## Using in Real Projects? Join the Chat
+You can join our Slack chat to ask questions or connect directly. [Connect on Slack](https://join.slack.com/t/thatmiracle/shared_invite/zt-2hxi2pz12-0Pnf8zwCB3zWZ9SJmC0Qtg)
+
+
