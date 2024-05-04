@@ -18,7 +18,7 @@ RUN xcaddy build \
     --output /usr/local/bin/frankenphp \
     --with github.com/dunglas/frankenphp=./ \
     --with github.com/dunglas/frankenphp/caddy=./caddy/ \
-    --with github.com/dunglas/caddy-cbrotli \   
+    --with github.com/dunglas/caddy-cbrotli \
     # Add extra Caddy modules here
     --with github.com/stephenmiracle/frankenwp/sidekick/middleware/cache=./cache
 
@@ -52,13 +52,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libzip-dev \
     unzip \
     git \
-    libmagickwand-dev \
     libjpeg-dev \
     libwebp-dev \
     libzip-dev \
-    libmagickcore-dev \
-    libmagickwand-6.q16-6 \
-    libmagickcore-6.q16-6 \
     libmemcached-dev \
     zlib1g-dev
 
@@ -71,13 +67,9 @@ RUN install-php-extensions \
     intl \
     mysqli \
     zip \
+    # See https://github.com/Imagick/imagick/issues/640#issuecomment-2077206945
+    imagick/imagick@master \
     opcache
-
-
-RUN echo '' | pecl install imagick; \
-    docker-php-ext-enable imagick; \
-    rm -r /tmp/pear;
-
 
 
 RUN cp $PHP_INI_DIR/php.ini-production $PHP_INI_DIR/php.ini
