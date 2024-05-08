@@ -118,7 +118,6 @@ WORKDIR /var/www/html
 VOLUME /var/www/html/wp-content
 
 
-COPY Caddyfile /etc/caddy/Caddyfile
 COPY wp-content/mu-plugins /var/www/html/wp-content/mu-plugins
 RUN mkdir /var/www/html/wp-content/cache
 
@@ -139,16 +138,13 @@ RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli
     chmod +x wp-cli.phar && \
     mv wp-cli.phar /usr/local/bin/wp
 
+COPY Caddyfile /etc/caddy/Caddyfile
+
+# Caddy requires an additional capability to bind to port 80 and 443
 RUN useradd -D ${USER} && \
-    # Caddy requires an additional capability to bind to port 80 and 443
     setcap CAP_NET_BIND_SERVICE=+eip /usr/local/bin/frankenphp
 
 # Caddy requires write access to /data/caddy and /config/caddy
-RUN sed -i \
-    -e 's/\[ "$1" = '\''php-fpm'\'' \]/\[\[ "$1" == frankenphp* \]\]/g' \
-    -e 's/php-fpm/frankenphp/g' \
-    /usr/local/bin/docker-entrypoint.sh
-
 RUN chown -R ${USER}:${USER} /data/caddy && \
     chown -R ${USER}:${USER} /config/caddy && \
     chown -R ${USER}:${USER} /var/www/html && \
