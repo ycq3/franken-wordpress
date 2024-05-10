@@ -119,6 +119,9 @@ func (d *Store) Get(key string) ([]byte, error) {
 		}
 	}
 
+	d.logger.Debug("Cache hit", zap.String("key", key))
+	d.logger.Debug("Pulled key from disk", zap.String("key", key))
+
 	return []byte(content), nil
 }
 
@@ -151,23 +154,15 @@ func (d *Store) Set(key string, idx int, value []byte) error {
 
 func (d *Store) Purge(key string) {
 	key = strings.ReplaceAll(key, "/", "+")
-	removeLoc := d.loc+"/"+CACHE_DIR+"/."
 	d.logger.Debug("Removing key from cache", zap.String("key", key))
 
 	delete(d.memCache, "br::"+key)
 	delete(d.memCache, "gzip::"+key)
+	delete(d.memCache, "none::"+key)
 	
-	if _, err := os.Stat(removeLoc+"br::"+key); err == nil {
-		d.logger.Info("Removing brotli cache")
-		err = os.Remove(removeLoc+"br::"+key)
-		d.logger.Info("Brotli remove error status", zap.Error(err))
-	}
-
-	if _, err := os.Stat(removeLoc+"gzip::"+key); err == nil {
-		d.logger.Info("Removing gzip cache")
-		err = os.Remove(removeLoc+"gzip::"+key)
-		d.logger.Info("Gzip remove error status", zap.Error(err))
-	}
+	os.RemoveAll(d.loc+"/"+CACHE_DIR+"/br::"+key)
+	os.RemoveAll(d.loc+"/"+CACHE_DIR+"/gzip::"+key)
+	os.RemoveAll(d.loc+"/"+CACHE_DIR+"/none::"+key)
 }
 
 func (d *Store) Flush() error {
