@@ -7,6 +7,7 @@ import (
 	"strings"
 	"errors"
 	"time"
+	"strconv"
 )
 
 type Store struct {
@@ -17,7 +18,7 @@ type Store struct {
 }
 
 type MemCacheItem struct {
-	value []byte
+	content map[int]*string
 	timestamp int64
 }
 
@@ -30,18 +31,30 @@ func NewStore(loc string, ttl int, logger *zap.Logger) *Store {
 	os.MkdirAll(loc+"/"+CACHE_DIR, os.ModePerm)
 	memCache := make(map[string]*MemCacheItem)
 
-	// Load cache from disk
+	// // Load cache from disk
 	files, err := os.ReadDir(loc+"/"+CACHE_DIR)
 	if err == nil {
 		for _, file := range files {
-			if !file.IsDir() {
-				value, err := os.ReadFile(loc+"/"+CACHE_DIR+"/"+file.Name())
-				stat, err := os.Stat(loc+"/"+CACHE_DIR+"/"+file.Name())
+			if file.IsDir() {
+				pageFiles, err := os.ReadDir(loc+"/"+CACHE_DIR+"/"+file.Name())
+				if err != nil {
+					continue
+				}
 
-				if err == nil {
-					memCache[file.Name()] = &MemCacheItem{
-						value: value,
-						timestamp: stat.ModTime().Unix(),
+				memCache[file.Name()] = &MemCacheItem{
+					content: make(map[int]*string),
+					timestamp: time.Now().Unix(),
+				}
+
+				for idx, pageFile := range pageFiles {
+					if !pageFile.IsDir() {
+						value, err := os.ReadFile(loc+"/"+CACHE_DIR+"/"+file.Name()+"/"+pageFile.Name())
+
+						if err != nil {
+							continue
+						}
+						newValue := string(value)
+						memCache[file.Name()].content[idx] = &newValue
 					}
 				}
 			}
@@ -59,37 +72,81 @@ func NewStore(loc string, ttl int, logger *zap.Logger) *Store {
 
 func (d *Store) Get(key string) ([]byte, error) {
 	key = strings.ReplaceAll(key, "/", "+")
+	d.logger.Debug("Getting key from cache", zap.String("key", key))
 
 	if d.memCache[key] != nil {
 		d.logger.Debug("Pulled key from memory", zap.String("key", key))
-		return d.memCache[key].value, nil
+
+		if time.Now().Unix() - d.memCache[key].timestamp > int64(d.ttl) {
+			d.logger.Debug("Cache expired", zap.String("key", key))
+			go d.Purge(key)
+			return nil, errors.New("Cache expired")
+		}
+
+		content := ""
+
+		for idx := 0; idx < len(d.memCache[key].content); idx++ {
+			if d.memCache[key].content[idx] == nil {
+				d.logger.Debug("Content missing", zap.Int("index", idx))
+				continue
+			}
+
+			content += *d.memCache[key].content[idx]
+		}
+
+		d.logger.Debug("Cache hit", zap.String("key", key))
+		return []byte(content), nil
+
+		//return content, nil
 	}
 
-	if _, err := os.Stat(d.loc + "/" + CACHE_DIR+ "/." +key); err == nil {
-		d.logger.Debug("Pulled key from file", zap.String("key", key))
-		return os.ReadFile(d.loc+"/"+CACHE_DIR+"/."+key)
+	// load files in directory
+	files, err := os.ReadDir(d.loc+"/"+CACHE_DIR+"/"+key)
+	if err != nil {
+		return nil, errors.New("Key not found in cache")
 	}
 
-	err := errors.New("Key not found in cache")
+	content := ""
 
-	return nil, err
+	for _, file := range files {
+		if !file.IsDir() {
+			value, err := os.ReadFile(d.loc+"/"+CACHE_DIR+"/"+key+"/"+file.Name())
+			if err != nil {
+				return nil, errors.New("Key not found in cache")
+			}
+
+			content += string(value)
+		}
+	}
+
+	return []byte(content), nil
 }
 
-func (d *Store) Set(key string, value []byte) error {
+func (d *Store) Set(key string, idx int, value []byte) error {
 	key = strings.ReplaceAll(key, "/", "+")
-	d.memCache[key] = &MemCacheItem{
-		value: value,
-		timestamp: time.Now().Unix(),
+
+	if d.memCache[key] == nil {
+		d.memCache[key] = &MemCacheItem{
+			content: make(map[int]*string),
+			timestamp: time.Now().Unix(),
+		}
 	}
+	
+	d.logger.Debug("-----------------------------------")
+	d.logger.Debug("Setting key in cache", zap.String("key", key))
+	d.logger.Debug("Index", zap.Int("index", idx))
+	newValue := string(value)
+	d.memCache[key].content[idx] = &newValue
 
-    err := os.WriteFile(d.loc+"/"+CACHE_DIR+"/."+key, value, 0644)
-
+	// create page directory 
+	os.MkdirAll(d.loc+"/"+CACHE_DIR+"/"+key, os.ModePerm)
+	err := os.WriteFile(d.loc+"/"+CACHE_DIR+"/"+key+"/"+strconv.Itoa(idx), value, os.ModePerm)
 	
 	if err != nil {
 		d.logger.Error("Error writing to cache", zap.Error(err))
 	}
 
-	return err
+	return nil
 }
 
 func (d *Store) Purge(key string) {

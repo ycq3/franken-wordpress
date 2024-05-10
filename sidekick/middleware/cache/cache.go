@@ -161,10 +161,6 @@ func (c Cache) ServeHTTP(w http.ResponseWriter, r *http.Request,
 		bypass = true
 	}
 
-	if r.Proto == "HTTP/1.0" {
-		bypass = true
-	}
-
 	if bypass  {
 		return next.ServeHTTP(w, r)
 	}
@@ -225,6 +221,10 @@ func (c Cache) ServeHTTP(w http.ResponseWriter, r *http.Request,
 		}
 	}
 
+	if encoding == "" {
+		encoding = "none"
+	}
+
 	cacheKey := encoding + "::" + r.URL.Path
 	cacheItem, err := db.Get(cacheKey)
 
@@ -237,7 +237,6 @@ func (c Cache) ServeHTTP(w http.ResponseWriter, r *http.Request,
 		w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 		w.Header().Set("Server", "Caddy")
 		w.Header().Set("X-Powered-By", "PHP/8.3.4")
-	//	w.Header().Set("Transfer-Encoding", "chunked")
 		w.Header().Set("Vary", "Accept-Encoding")
 		w.Header().Set("Content-Encoding", encoding)
 		w.Write(cacheItem)

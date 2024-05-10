@@ -6,7 +6,8 @@ import (
 )
 
 func NewCustomWriter(rw http.ResponseWriter, r *http.Request, db *Store, logger *zap.Logger, path string) *CustomWriter {	
-	nw := CustomWriter{rw, r, db, logger, path}
+	nw := CustomWriter{rw, r, db, logger, path, 0}
+	
 	return &nw
 }
 
@@ -17,6 +18,7 @@ type CustomWriter struct {
 	*Store
 	*zap.Logger
 	path string
+	idx int
 }
 
 func (r *CustomWriter) Header() http.Header {
@@ -30,10 +32,15 @@ func (r *CustomWriter) Write(b []byte) (int, error) {
 	ct := r.Header().Get("Content-Encoding")
 	r.Header().Set("X-WPEverywhere-Cache", "MISS")
 
-	cacheKey := ct + "::" + r.path
-	r.Logger.Debug("Cache Key", zap.String("Key", cacheKey))
+	if ct == "" {
+		ct = "none"
+	}
 
-	go r.Store.Set(cacheKey, b)
+	cacheKey := ct + "::" + r.path
+
+	r.Logger.Debug("Cache Key", zap.String("Key", cacheKey))
+	r.Store.Set(cacheKey, r.idx, b)
+	r.idx++
 
 	return r.ResponseWriter.Write(b)
 }
