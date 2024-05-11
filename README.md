@@ -23,17 +23,32 @@ An enterprise-grade WordPress image built for scale. It uses the new FrankenPHP 
 
 ### Environment Variables
 
-- SERVER_NAME // Domain to set. Will request a SSL cert for it. Can also set to a port like :80, :8095
-- DB_NAME
-- DB_USER
-- DB_PASSWORD
-- DB_HOST
-- DB_ROOT_PASSWORD
-- DB_TABLE_PREFIX
-- WP_DEBUG
-- FORCE_HTTPS
-- TTL
-- WORDPRESS_CONFIG_EXTRA // use this for adding CACHE, WP_HOME, WP_SITEURL, etc
+#### FrankenPHP
+
+- `SERVER_NAME`: change the addresses on which to listen, the provided hostnames will also be used for the generated TLS certificate
+- `CADDY_GLOBAL_OPTIONS`: inject global options (debug most common)
+- `FRANKENPHP_CONFIG`: inject config under the frankenphp directive
+
+#### Sidekick Cache
+
+- `CACHE_LOC`: Where to store cache. Defaults to /var/www/html/wp-content/cache
+- `CACHE_RESPONSE_CODES`: Which status codes to cache. Defaults to 200,404,405
+- `BYPASS_PATH_PREFIX`: Which path prefixes to not cache. Defaults to /wp-admin,/wp-json
+- `BYPASS_HOME`: Whether to skip caching home. Defaults to false.
+- `PURGE_KEY`: Create a purge key that must be validated on purge requests. Helps to prevent malicious intent. No default.
+- `PURGE_PATH`: Create a custom route for the cache purge API path. Defaults to /\_\_cache/purge.
+- `TTL`: Defines how long objects should be stored in cache. Defaults to 6000.
+
+#### Wordpress
+
+- `DB_NAME`: The WordPress database name.
+- `DB_USER`: The WordPress database user.
+- `DB_PASSWORD`: The WordPress database password.
+- `DB_HOST`: The WordPress database host.
+- `DB_TABLE_PREFIX`: The WordPress database table prefix.
+- `WP_DEBUG`: Turns on WordPress Debug.
+- `FORCE_HTTPS`: Tells WordPress to use https on requests. This is beneficial behind load balancer. Defaults to true.
+- `WORDPRESS_CONFIG_EXTRA`: use this for adding WP_HOME, WP_SITEURL, etc
 
 ## Questions
 
@@ -64,8 +79,6 @@ Working in cloud environments like AWS can be tricky because your traffic is goi
 What about SSL cert? Use `SERVER_NAME=mydomain.com, :80`
 Caddy, the underlying application server is flexible enough for multiple entries. Separate multiple values with a comma. It will still request certificate.
 
-
 ## Using in Real Projects? Join the Chat
+
 You can join our Slack chat to ask questions or connect directly. [Connect on Slack](https://join.slack.com/t/thatmiracle/shared_invite/zt-2hxi2pz12-0Pnf8zwCB3zWZ9SJmC0Qtg)
-
-
