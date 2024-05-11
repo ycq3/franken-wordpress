@@ -22,6 +22,7 @@ type Cache struct {
 	PurgeKey string
 	BypassPathPrefixes []string
 	BypassHome bool
+	CacheResponseCodes []string
 	TTL int
 	Store *Store
 }
@@ -63,6 +64,18 @@ func (c *Cache) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
 				c.BypassHome = true
 			}
 
+		case "cache_response_codes":
+			codes := strings.Split(strings.TrimSpace(value), ",")
+			c.CacheResponseCodes = make([]string, len(codes))
+
+			for i, code := range codes {
+				code = strings.TrimSpace(code)
+				if strings.Contains(code, "XX") {
+					code = string(code[0])
+				}
+				c.CacheResponseCodes[i] = code
+			}
+
 		case "ttl":
 			ttl, err := strconv.Atoi(value)
 			if err != nil {
@@ -89,6 +102,18 @@ func (c *Cache) Provision(ctx caddy.Context) error {
 		c.Loc = os.Getenv("CACHE_LOC")
 	}
 
+	if c.CacheResponseCodes == nil {
+		codes := strings.Split(os.Getenv("CACHE_RESPONSE_CODES"), ",")
+		c.CacheResponseCodes = make([]string, len(codes))
+
+		for i, code := range codes {
+			code = strings.TrimSpace(code)
+			if strings.Contains(code, "XX") {
+				code = string(code[0])
+			}
+			c.CacheResponseCodes[i] = code
+		}
+	}
 
 	if c.BypassPathPrefixes == nil {
 		c.BypassPathPrefixes = strings.Split(strings.TrimSpace(os.Getenv("BYPASS_PATH_PREFIX")), ",")
@@ -161,12 +186,14 @@ func (c Cache) ServeHTTP(w http.ResponseWriter, r *http.Request,
 		bypass = true
 	}
 
+	
+
 	if bypass  {
 		return next.ServeHTTP(w, r)
 	}
 
 	db := c.Store
-	nw := NewCustomWriter(w, r, db, c.logger, r.URL.Path)
+	nw := NewCustomWriter(w, r, db, c.logger, r.URL.Path, c.CacheResponseCodes)
 
 	if strings.Contains(r.URL.Path, c.PurgePath) && r.Method == "GET" {
 		key := r.Header.Get("X-WPSidekick-Purge-Key")
@@ -236,7 +263,6 @@ func (c Cache) ServeHTTP(w http.ResponseWriter, r *http.Request,
 		w.Header().Set("X-WPEverywhere-Cache", "HIT")
 		w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 		w.Header().Set("Server", "Caddy")
-		w.Header().Set("X-Powered-By", "PHP/8.3.4")
 		w.Header().Set("Vary", "Accept-Encoding")
 		w.Header().Set("Content-Encoding", encoding)
 		w.Write(cacheItem)

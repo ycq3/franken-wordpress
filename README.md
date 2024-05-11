@@ -23,7 +23,22 @@ An enterprise-grade WordPress image built for scale. It uses the new FrankenPHP 
 
 ### Environment Variables
 
-- SERVER_NAME // Domain to set. Will request a SSL cert for it. Can also set to a port like :80, :8095
+#### FrankenPHP
+
+- SERVER_NAME
+
+#### Sidekick Cache
+
+- CACHE_LOC
+- CACHE_RESPONSE_CODES
+- BYPASS_PATH_PREFIX
+- BYPASS_HOME
+- PURGE_KEY
+- PURGE_PATH
+- TTL
+
+#### Wordpress
+
 - DB_NAME
 - DB_USER
 - DB_PASSWORD
@@ -32,8 +47,7 @@ An enterprise-grade WordPress image built for scale. It uses the new FrankenPHP 
 - DB_TABLE_PREFIX
 - WP_DEBUG
 - FORCE_HTTPS
-- TTL
-- WORDPRESS_CONFIG_EXTRA // use this for adding CACHE, WP_HOME, WP_SITEURL, etc
+- WORDPRESS_CONFIG_EXTRA // use this for adding WP_HOME, WP_SITEURL, etc
 
 ## Questions
 
@@ -64,8 +78,6 @@ Working in cloud environments like AWS can be tricky because your traffic is goi
 What about SSL cert? Use `SERVER_NAME=mydomain.com, :80`
 Caddy, the underlying application server is flexible enough for multiple entries. Separate multiple values with a comma. It will still request certificate.
 
-
 ## Using in Real Projects? Join the Chat
+
 You can join our Slack chat to ask questions or connect directly. [Connect on Slack](https://join.slack.com/t/thatmiracle/shared_invite/zt-2hxi2pz12-0Pnf8zwCB3zWZ9SJmC0Qtg)
-
-
