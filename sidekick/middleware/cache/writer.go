@@ -3,10 +3,11 @@ package cache
 import (
 	"net/http"
 	"go.uber.org/zap"
+	"strconv"
 )
 
 func NewCustomWriter(rw http.ResponseWriter, r *http.Request, db *Store, logger *zap.Logger, path string, codes []string) *CustomWriter {	
-	nw := CustomWriter{rw, r, db, logger, path, 0, codes}
+	nw := CustomWriter{rw, r, db, logger, path, 0, codes, 200}
 	
 	return &nw
 }
@@ -19,11 +20,17 @@ type CustomWriter struct {
 	*zap.Logger
 	path string
 	idx int
-	CacheResponseCodes []string
+	cacheResponseCodes []string
+	status int
 }
 
 func (r *CustomWriter) Header() http.Header {
 	return r.ResponseWriter.Header()
+}
+
+func (r *CustomWriter) SetHeader(status int) {
+	r.status = status
+	r.ResponseWriter.WriteHeader(status)
 }
 
 // Write will write the response body
@@ -35,14 +42,17 @@ func (r *CustomWriter) Write(b []byte) (int, error) {
 	bypass := true
 
 	// check if the response code is in the cache response codes
-	for _, code := range r.CacheResponseCodes {
-		if code == r.Response().Status {
+	for _, code := range r.cacheResponseCodes {
+		status := strconv.Itoa(r.status)
+
+		if code == status {
 			bypass = false
 			break
 		}
 
+		// code may be single digit because of wildcard usage (e.g. 2XX, 4XX, 5XX)
 		if len(code) == 1 {
-			if code == r.Response().Status[:1] {
+			if code == status {
 				bypass = false
 				break
 			}
