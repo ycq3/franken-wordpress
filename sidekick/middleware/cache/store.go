@@ -19,6 +19,7 @@ type Store struct {
 
 type MemCacheItem struct {
 	content map[int]*string
+	value string
 	timestamp int64
 }
 
@@ -43,6 +44,7 @@ func NewStore(loc string, ttl int, logger *zap.Logger) *Store {
 
 				memCache[file.Name()] = &MemCacheItem{
 					content: make(map[int]*string),
+					value: "",
 					timestamp: time.Now().Unix(),
 				}
 
@@ -55,6 +57,7 @@ func NewStore(loc string, ttl int, logger *zap.Logger) *Store {
 						}
 						newValue := string(value)
 						memCache[file.Name()].content[idx] = &newValue
+						memCache[file.Name()].value += newValue
 					}
 				}
 			}
@@ -83,21 +86,8 @@ func (d *Store) Get(key string) ([]byte, error) {
 			return nil, errors.New("Cache expired")
 		}
 
-		content := ""
-
-		for idx := 0; idx < len(d.memCache[key].content); idx++ {
-			if d.memCache[key].content[idx] == nil {
-				d.logger.Debug("Content missing", zap.Int("index", idx))
-				continue
-			}
-
-			content += *d.memCache[key].content[idx]
-		}
-
 		d.logger.Debug("Cache hit", zap.String("key", key))
-		return []byte(content), nil
-
-		//return content, nil
+		return []byte(d.memCache[key].value), nil
 	}
 
 	// load files in directory
@@ -131,6 +121,7 @@ func (d *Store) Set(key string, idx int, value []byte) error {
 	if d.memCache[key] == nil {
 		d.memCache[key] = &MemCacheItem{
 			content: make(map[int]*string),
+			value: "",
 			timestamp: time.Now().Unix(),
 		}
 	}
@@ -139,7 +130,12 @@ func (d *Store) Set(key string, idx int, value []byte) error {
 	d.logger.Debug("Setting key in cache", zap.String("key", key))
 	d.logger.Debug("Index", zap.Int("index", idx))
 	newValue := string(value)
-	d.memCache[key].content[idx] = &newValue
+
+	if idx == 0 {
+		d.memCache[key].timestamp = time.Now().Unix()
+	}
+
+	d.memCache[key].value += newValue
 
 	// create page directory 
 	os.MkdirAll(d.loc+"/"+CACHE_DIR+"/"+key, os.ModePerm)
