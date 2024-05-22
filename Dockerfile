@@ -2,12 +2,6 @@ ARG WORDPRESS_VERSION=latest
 ARG PHP_VERSION=8.3
 ARG USER=www-data
 
-FROM golang as sidekickbuilder
-WORKDIR /app
-COPY ./sidekick .
-RUN go mod download
-RUN go build -o ./server/cmd 
-
 
 
 FROM dunglas/frankenphp:latest-builder as builder
@@ -154,4 +148,3 @@ USER $USER
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile"]
-
