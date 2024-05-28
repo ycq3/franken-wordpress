@@ -8,6 +8,11 @@ An enterprise-grade WordPress image built for scale. It uses the new FrankenPHP 
 - [Docker Compose](https://github.com/StephenMiracle/wordpress-docker-frankenphp "Docker Compose Project")
 - [Slack](https://join.slack.com/t/thatmiracle/shared_invite/zt-2hxi2pz12-0Pnf8zwCB3zWZ9SJmC0Qtg "Slack")
 
+### Examples
+
+- [Debug with XDebug & Docker Compose](./examples/debug/compose.yaml)
+- [SQLite with Docker Compose](./examples/sqlite/compose.yaml)
+
 ## Whats Included
 
 ### Services
