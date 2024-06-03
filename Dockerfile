@@ -4,7 +4,7 @@ ARG USER=www-data
 
 
 
-FROM dunglas/frankenphp:builder-php${PHP_VERSION} as builder
+FROM dunglas/frankenphp:latest-builder-php${PHP_VERSION} as builder
 
 # Copy xcaddy in the builder image
 COPY --from=caddy:builder-latest /usr/bin/xcaddy /usr/bin/xcaddy
