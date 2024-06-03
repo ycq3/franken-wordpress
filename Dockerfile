@@ -7,7 +7,7 @@ ARG USER=www-data
 FROM dunglas/frankenphp:latest-builder-php${PHP_VERSION} as builder
 
 # Copy xcaddy in the builder image
-COPY --from=caddy:builder-latest /usr/bin/xcaddy /usr/bin/xcaddy
+COPY --from=caddy:builder /usr/bin/xcaddy /usr/bin/xcaddy
 
 
 # CGO must be enabled to build FrankenPHP
