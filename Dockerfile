@@ -25,7 +25,7 @@ RUN xcaddy build \
 
 
 FROM wordpress:$WORDPRESS_VERSION as wp
-FROM dunglas/frankenphp AS base
+FROM dunglas/frankenphp:latest-php${PHP_VERSION} AS base
 
 LABEL org.opencontainers.image.title=FrankenWP
 LABEL org.opencontainers.image.description="Optimized WordPress containers to run everywhere. Built with FrankenPHP & Caddy."
