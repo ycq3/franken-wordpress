@@ -56,6 +56,7 @@ jobs:
         if: contains(github.ref, 'main')
         with:
           context: .
+          push: true
           tags: latest-php8.3
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
@@ -72,7 +73,7 @@ jobs:
         if: "!contains(github.ref , 'main')"
         with:
           context: .
-          push: ${{ github.event_name != 'pull_request' }}
+          push: true
           tags: ${{ steps.meta.outputs.tags }}-php8.3
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
