@@ -57,7 +57,7 @@ jobs:
         if: contains(github.ref, 'main')
         with:
           context: .
-          tags: latest-php8.2
+          tags: wpeverywhere/frankenwp:latest-php8.2
           push: true
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
