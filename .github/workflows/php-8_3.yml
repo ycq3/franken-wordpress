@@ -61,7 +61,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64,linux/arm64,linux/arm/v7
-          build-args: PHP_VERSION=8.3
+          build-args: |
+            PHP_VERSION=8.3
 
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
@@ -77,4 +78,5 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64,linux/arm64,linux/arm/v7
-          build-args: PHP_VERSION=8.3
+          build-args: |
+            PHP_VERSION=8.3
