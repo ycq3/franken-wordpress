@@ -1,14 +1,16 @@
 # WordPress + FrankenPHP Docker Image
 
-An enterprise-grade WordPress image built for scale. It uses the new FrankenPHP server bundled with Caddy. Lightning-fast automated caching is provided through the cache-handler Caddy module. Default is set to local wp-content/cache location but can switch to other distributed options such as Redis if desired.
+An enterprise-grade WordPress image built for scale. It uses the new FrankenPHP server bundled with Caddy. Lightning-fast server side caching Caddy module.
 
 ## Getting Started
 
-- [Docker Hub Source](https://hub.docker.com/r/wpeverywhere/frankenwp "Docker Hub")
-- [Slack](https://join.slack.com/t/thatmiracle/shared_invite/zt-2hxi2pz12-0Pnf8zwCB3zWZ9SJmC0Qtg "Slack")
+- [Docker Images](https://hub.docker.com/r/wpeverywhere/frankenwp "Docker Hub")
+- [Slack](https://join.slack.com/t/wpeverywhere/shared_invite/zt-2k88x3jtv-dpJHRYJ2IDT9PNQpO96zxQ "Slack")
+- [Website](https://wpeverywhere.com)
 
 ### Examples
 
+- [Standard environment with MariaDB & Docker Compose](./examples/basic/compose.yaml)
 - [Debug with XDebug & Docker Compose](./examples/debug/compose.yaml)
 - [SQLite with Docker Compose](./examples/sqlite/compose.yaml)
 
@@ -85,4 +87,4 @@ Caddy, the underlying application server is flexible enough for multiple entries
 
 ## Using in Real Projects? Join the Chat
 
-You can join our Slack chat to ask questions or connect directly. [Connect on Slack](https://join.slack.com/t/thatmiracle/shared_invite/zt-2hxi2pz12-0Pnf8zwCB3zWZ9SJmC0Qtg)
+You can join our Slack chat to ask questions or connect directly. [Connect on Slack](https://join.slack.com/t/wpeverywhere/shared_invite/zt-2k88x3jtv-dpJHRYJ2IDT9PNQpO96zxQ)

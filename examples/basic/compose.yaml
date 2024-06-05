@@ -1,6 +1,6 @@
 services:
   wordpress:
-    image: wpeverywhere/frankenwp:main-php8.2
+    image: wpeverywhere/frankenwp:latest-php8.3
     restart: always
     ports:
       - "8100:80" # HTTP
@@ -26,10 +26,8 @@ services:
       WORDPRESS_CONFIG_EXTRA: |
           define('WP_SITEURL', 'http://localhost:8100');
           define('WP_HOME', 'http://localhost:8100');
-
           
     volumes:
-      - ./test.php:/var/www/html/test.php
     #  - ./wp-content:/var/www/html/wp-content
 
     depends_on:
