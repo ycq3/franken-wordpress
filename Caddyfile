@@ -27,7 +27,7 @@
 	}
 
 	root * /var/www/html/
-	encode br zstd gzip
+	encode br gzip
 	
 	wp_cache {
 		loc {$CACHE_LOC:/var/www/html/wp-content/cache}
