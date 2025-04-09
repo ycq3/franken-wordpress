@@ -236,6 +236,12 @@ func (c Cache) ServeHTTP(w http.ResponseWriter, r *http.Request,
 		return next.ServeHTTP(w, r)
 	}
 
+	// ignore not html content
+	contentType := r.Header.Get("Content-Type")
+	if !strings.Contains(contentType,"text/html"){
+		return next.ServeHTTP(w, r)
+	}
+
 	requestHeader := r.Header
 	requestEncoding := requestHeader["Accept-Encoding"]
 
