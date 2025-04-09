@@ -36,7 +36,7 @@ jobs:
       # Docker Hub
       # Login against Github Docker registry except on PR
       # https://github.com/docker/login-action
-      - name: Log into wpeverywhere registry
+      - name: Log into pipiqiang registry
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -48,7 +48,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 # v5.0.0
         with:
-          images: wpeverywhere/frankenwp
+          images: pipiqiang/frankenwp
 
       - name: Build and push Latest Docker image
         id: build-and-push-latest
@@ -57,7 +57,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: wpeverywhere/frankenwp:latest-php8.4
+          tags: pipiqiang/frankenwp:latest-php8.4
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
